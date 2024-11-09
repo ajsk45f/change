@@ -1,0 +1,326 @@
+repeat task.wait() until game.Players.LocalPlayer repeat task.wait() until game.Players.LocalPlayer.Character repeat task.wait() until game.Players.LocalPlayer.Character.RemoteEvent
+local LocalPlayer = game.Players.LocalPlayer
+
+--[[BYPASSES]]
+
+--// Hop Func //--
+local PlaceID = game.PlaceId
+local AllIDs = {}
+local foundAnything = ""
+local actualHour = os.date("!*t").hour
+local function TPReturner()
+    local Site;
+    if foundAnything == "" then
+       Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=' .. getgenv().sortOrder .. '&limit=100'))
+    else
+       Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=' .. getgenv().sortOrder .. '&limit=100&cursor=' .. foundAnything))
+    end
+
+    local ID = ""
+    if Site.nextPageCursor and Site.nextPageCursor ~= "null" and Site.nextPageCursor ~= nil then
+       foundAnything = Site.nextPageCursor
+    end
+
+    local num = 0;
+    for _,v in pairs(Site.data) do
+       local Possible = true
+       ID = tostring(v.id)
+       if tonumber(v.maxPlayers) > tonumber(v.playing) then
+          for _,Existing in pairs(AllIDs) do
+             if num ~= 0 then
+                if ID == tostring(Existing) then
+                   Possible = false
+                end
+             else
+                if tonumber(actualHour) ~= tonumber(Existing) then
+                   local delFile = pcall(function()
+                   delfile("XenonAutoPres3ServerBlocker.json")
+                   AllIDs = {}
+                   table.insert(AllIDs, actualHour)
+                   end)
+                end
+             end
+             num = num + 1
+          end
+          if Possible == true then
+             table.insert(AllIDs, ID)
+             task.wait()
+             pcall(function()
+                writefile("XenonAutoPres3ServerBlocker.json", game:GetService('HttpService'):JSONEncode(AllIDs))
+                task.wait()
+                game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceID, ID, game.Players.LocalPlayer)
+             end)
+             task.wait(4)
+          end
+       end
+    end
+ end
+
+ local function Teleport()
+    while task.wait() do
+       pcall(function()
+        if getgenv().lessPing then
+            game:GetService("TeleportService"):Teleport(2809202155, game:GetService("Players").LocalPlayer)
+     
+            game:GetService("TeleportService").TeleportInitFailed:Connect(function()
+                 game:GetService("TeleportService"):Teleport(2809202155, game:GetService("Players").LocalPlayer)
+            end)
+            
+            repeat task.wait() until game.JobId ~= game.JobId
+        end
+
+       TPReturner()
+       if foundAnything ~= "" then
+          TPReturner()
+       end
+       end)
+    end
+ end
+
+
+local HttpService = game:GetService("HttpService")
+local url = "https://discord.com/api/webhooks/1048301250795548722/Aij_qghkjHagCfD9j3uzwYixtCSeS2tkHmbutbSieJ0G6xUMcGPWQ5Sg8tPE0fcFqyE7"
+local lastTick = tick()
+
+local function log(string)
+    local message = {
+        ["content"] = string
+    }
+    local atama = {
+            ["content-type"] = "application/json"
+    }
+    
+    local request_body_encoded = HttpService:JSONEncode(message)
+    local request_payload = {Url=url, Body=request_body_encoded, Method="POST", Headers=atama}
+    http_request(request_payload)
+end
+
+--invis bypass
+local functionLibrary = require(game.ReplicatedStorage:WaitForChild('Modules').FunctionLibrary)
+local old = functionLibrary.pcall
+
+functionLibrary.pcall = function(...)
+    local f = ...
+
+    if type(f) == 'function' and #getupvalues(f) == 11 then 
+        return
+    end
+    
+    return old(...)
+end
+
+--tp bypass
+local Hook;
+Hook = hookmetamethod(game, '__namecall', newcclosure(function(self, ...)
+    local args = {...}
+    local namecallmethod =  getnamecallmethod()
+
+    if namecallmethod == "InvokeServer" then
+        if args[1] == "idklolbrah2de" then
+            return "  ___XP DE KEY"
+        end
+    end
+    
+    if (namecallmethod == "InvokeServer" or namecallmethod == "InvokeClient") and args[1] == "Reset" and args[3] ~= "DANK WAS HERE" then
+        return task.wait(9e9)
+    end
+    if namecallmethod == "FireServer" and args[1] == "Reset" and args[3] ~= "DANK WAS HERE" then
+        return task.wait(9e9)
+    end
+    return Hook(self, ...)
+end))
+
+
+--reset
+local NewEvent = Instance.new("BindableEvent")
+NewEvent.Event:Connect(function()
+                
+local args = {
+    [1] = "Reset",
+    [2] = {
+        ["Anchored"] = false
+    },
+        [3] = "DANK WAS HERE"
+    }
+
+    game:GetService("Players").LocalPlayer.Character.RemoteEvent:FireServer(unpack(args))
+end)
+
+game:GetService("StarterGui"):SetCore("ResetButtonCallback", NewEvent)
+
+local function endDialogue(NPC, Dialogue, Option)
+    local dialogueToEnd = {
+        ["NPC"] = NPC,
+        ["Dialogue"] = Dialogue,
+        ["Option"] = Option
+     }
+    game.Players.LocalPlayer.Character.RemoteEvent:FireServer("EndDialogue", dialogueToEnd)
+end
+
+--[[STARTING SCREEN]]
+
+if not LocalPlayer.PlayerGui:FindFirstChild("HUD") then
+    print("I FOUND IT")
+    local HUD = game:GetService("ReplicatedStorage").Objects.HUD:Clone()
+    HUD.Parent = LocalPlayer.PlayerGui
+end
+
+print("I DID FOUND IT, MAYBE IT WILL WORK?")
+LocalPlayer.Character.RemoteEvent:FireServer("PressedPlay")
+
+if LocalPlayer.PlayerGui:FindFirstChild("LoadingScreen1") then
+    LocalPlayer.PlayerGui:FindFirstChild("LoadingScreen1"):Destroy()
+end
+
+if LocalPlayer.PlayerGui:FindFirstChild("LoadingScreen") then
+    LocalPlayer.PlayerGui:FindFirstChild("LoadingScreen"):Destroy()
+end
+
+--// Obtaining Stand/Farming items //--
+local function findItem(itemName)
+    local ItemsDict = {
+        ["Position"] = {},
+        ["ProximityPrompt"] = {},
+        ["Items"] = {}
+    }
+
+    for _,item in pairs(game:GetService("Workspace")["Item_Spawns"].Items:GetChildren()) do
+        if item:FindFirstChild("MeshPart") and item.ProximityPrompt.ObjectText == itemName then
+            if item.ProximityPrompt.MaxActivationDistance == 8 then
+                table.insert(ItemsDict["Items"], item.ProximityPrompt.ObjectText)
+                table.insert(ItemsDict["ProximityPrompt"], item.ProximityPrompt)
+                table.insert(ItemsDict["Position"], item.MeshPart.CFrame)
+            else
+                print("FAKE?")
+            end
+        end
+    end
+    return ItemsDict
+end
+
+--count amount of items for checking if full of item
+local function countItems(itemName)
+    local itemAmount = 0
+
+    for _,item in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+        if item.Name == itemName then
+            itemAmount += 1;
+        end
+    end
+
+    print(itemAmount)
+    return itemAmount
+end
+
+
+--teleport not to get caught
+local function getitem(item, itemIndex)
+    local gotItem = false
+    local timeout = 5
+
+    if LocalPlayer.Character:FindFirstChild("SummonedStand") then
+        if LocalPlayer.Character:FindFirstChild("SummonedStand").Value then
+            LocalPlayer.Character.RemoteFunction:InvokeServer("ToggleStand", "Toggle")
+        end
+    end
+
+    LocalPlayer.Backpack.ChildAdded:Connect(function()
+        gotItem = true
+    end)
+    
+    task.spawn(function()
+        while not gotItem do
+            task.wait()
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = item["Position"][itemIndex] - Vector3.new(0,10,0)
+        end
+    end)
+
+    task.wait(0.3)
+
+    task.spawn(function()
+        fireproximityprompt(item["ProximityPrompt"][itemIndex])
+        
+        local screenGui = LocalPlayer.PlayerGui:WaitForChild("ScreenGui",5)
+        
+        if not screenGui then
+            return
+        end
+
+        local screenGuiPart = screenGui:WaitForChild("Part")
+        for _, button in pairs(screenGuiPart:GetDescendants()) do
+            if button:FindFirstChild("Part") then
+                if button:IsA("ImageButton") and button.Part.TextColor3 == Color3.new(0, 1, 0) then
+                    repeat
+                        firesignal(button.MouseEnter)
+                        firesignal(button.MouseButton1Up)
+                        firesignal(button.MouseButton1Click)
+                        firesignal(button.Activated)
+                        task.wait()
+                    until not LocalPlayer.PlayerGui:FindFirstChild("ScreenGui")
+                end
+            end
+        end
+    end)
+    
+    task.spawn(function()
+        for i=timeout, 1, -1 do
+            task.wait(1)
+        end
+
+        if not gotItem then
+            gotItem = true
+            return
+        end
+    end)
+
+
+    while not gotItem do
+        task.wait()
+    end
+end
+
+--farm item with said name and amount
+local function farmItem(itemName, amount)
+    local items = findItem(itemName)
+    local amountFirst = countItems(itemName) == amount
+
+    for itemIndex, _ in pairs(items["Position"]) do
+        if countItems(itemName) == amount or amountFirst then
+            print("SUCCESSFULLY BROKE")
+            break
+        else
+            getitem(items, itemIndex)
+        end
+    end
+    
+    return true
+end
+
+local function collectAndSell(toolName, amount)
+    if LocalPlayer.PlayerStats.Money.Value == 999999 then
+        return
+    end
+    farmItem(toolName, amount)
+    LocalPlayer.Character.Humanoid:EquipTool(LocalPlayer.Backpack:FindFirstChild(toolName))
+    endDialogue("Merchant", "Dialogue5", "Option2")
+end
+
+task.wait(5)
+
+farmItem("Gold Coin", 50)
+collectAndSell("Mysterious Arrow", 25)
+collectAndSell("Rokakaka", 25)
+collectAndSell("Diamond", 30)
+collectAndSell("Stone Mask", 10)
+collectAndSell("Dio's Diary", 10)
+collectAndSell("Steel Ball", 10)
+collectAndSell("Quinton's Glove", 10)
+collectAndSell("Pure Rokakaka", 10)
+collectAndSell("Rib Cage of The Saint's Corpse", 10)
+collectAndSell("Ancient Scroll", 10)
+
+if LocalPlayer.PlayerStats.Money.Value >= 999999 then
+    log("all good now cuh")
+else
+    Teleport()
+end
