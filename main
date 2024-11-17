@@ -760,7 +760,7 @@ function Xenon.Utils:Collect(Item)
         if HRP and Item and Item.PrimaryPart and Item.PrimaryPart.CFrame then
             OldCF = HRP.CFrame
             HRP.CFrame = Item.PrimaryPart.CFrame - v3(0, 10, 0)
-            task.wait(1)
+            task.wait(0.3)
             repeat 
                     fireproximityprompt(Item:FindFirstChild("ProximityPrompt"))
                     if Item and Item.Parent == workspace.Item_Spawns.Items and Character and HRP then
@@ -768,7 +768,7 @@ function Xenon.Utils:Collect(Item)
                     end
                     task.wait()
             until Item.Parent ~= workspace.Item_Spawns.Items or tick()-Start >= 3.5
-            task.wait(1)
+            task.wait(0.6)
             HRP.CFrame = OldCF
         end
     end
@@ -781,7 +781,6 @@ function Xenon.Utils:FarmItems(List)
         local ItemName = Item.ItemName
         if table.find(List, ItemName) and not self:IsMax(ItemName) then
             xpcall(function()
-	
                     self:Collect(Item.ItemModel)
             end, function(err)
                     warn("[Xenon Error : Collect]:", err)
@@ -2385,7 +2384,7 @@ Autofarms_ShinyFarm:Toggle("Shiny Farm", Util:GetState("Shiny Farming"), functio
 
         if not Util:IsTaskRunning("SafeFarm") then
             Util:AddTask("SafeFarm", Util:GetPlayer().CharacterAdded:Connect(function(Char)
-                task.wait(0.7)
+                task.wait(0.325)
                 Char.PrimaryPart.CFrame = CFrame.new(-324, -32, 47)
                 print("teleported to safe spot for shiny farm")
             end))
