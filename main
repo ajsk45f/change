@@ -780,7 +780,7 @@ function Xenon.Utils:FarmItems(List)
     for Prompt, Item in pairs(self:GetTable("Queue")) do
         local ItemName = Item.ItemName
         if table.find(List, ItemName) and not self:IsMax(ItemName) then
-	task.wait(0.5) -- Add a delay of 0.5 seconds before collecting the item
+	task.wait(5) -- Add a delay of 0.5 seconds before collecting the item
             xpcall(function()
                     self:Collect(Item.ItemModel)
             end, function(err)
