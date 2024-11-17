@@ -755,52 +755,27 @@ function Xenon.Utils:Collect(Item)
     end))
     self:Log("Xenon:C_Clip: Added task.")
 
- if Character then
+    if Character then
     local HRP = Character:FindFirstChild("HumanoidRootPart")
     if HRP and Item and Item.PrimaryPart and Item.PrimaryPart.CFrame then
-        local OldCF = HRP.CFrame -- Save the original CFrame of the HumanoidRootPart
-        
-        -- Move the HRP above the item at the initial position
-        HRP.CFrame = Item.PrimaryPart.CFrame - v3(0, 10, 0)
-        task.wait(0.3) -- Wait for a short delay
-        
-        repeat 
-            -- Keep the HRP following the item at the offset position
-            fireproximityprompt(Item:FindFirstChild("ProximityPrompt"))
-            if Item and Item.Parent == workspace.Item_Spawns.Items and Character and HRP then
-                HRP.CFrame = Item.PrimaryPart.CFrame - v3(0, 10, 0) -- Attach HRP to item with offset
+        OldCF = HRP.CFrame
+        -- Start the following task immediately
+        task.spawn(function()
+            while Item.Parent == workspace.Item_Spawns.Items do
+                HRP.CFrame = Item.PrimaryPart.CFrame - v3(0, 10, 0)
+                task.wait() -- Keep updating position
             end
-            task.wait() -- Wait for the next iteration
-        until Item.Parent ~= workspace.Item_Spawns.Items or tick() - Start >= 3.5 -- Exit if the item disappears or after 3.5 seconds
-        
-        task.wait(0.6) -- Wait after collecting the item
-        HRP.CFrame = OldCF -- Restore the original CFrame of the HRP
-    end
-end
+            -- When the item is no longer in the spawn, restore the original position
+            HRP.CFrame = OldCF
+        end)
 
-if Character then
-    local HRP = Character:FindFirstChild("HumanoidRootPart")
-    if HRP and Item and Item.PrimaryPart and Item.PrimaryPart.CFrame then
-        local OldCF = HRP.CFrame -- Save the original CFrame of the HumanoidRootPart
-        
-        -- Move the HRP above the item at the initial position
-        HRP.CFrame = Item.PrimaryPart.CFrame - v3(0, 10, 0)
-        task.wait(0.3) -- Wait for a short delay
-        
-        repeat 
-            -- Keep the HRP following the item at the offset position
-            fireproximityprompt(Item:FindFirstChild("ProximityPrompt"))
-            if Item and Item.Parent == workspace.Item_Spawns.Items and Character and HRP then
-                HRP.CFrame = Item.PrimaryPart.CFrame - v3(0, 10, 0) -- Attach HRP to item with offset
-            end
-            task.wait() -- Wait for the next iteration
-        until Item.Parent ~= workspace.Item_Spawns.Items or tick() - Start >= 3.5 -- Exit if the item disappears or after 3.5 seconds
-        
-        task.wait(0.6) -- Wait after collecting the item
-        HRP.CFrame = OldCF -- Restore the original CFrame of the HRP
+        -- Wait for 3.5 seconds before stopping the following (just like the original code)
+        task.wait(3.5)
+
+        -- Stop following after 3.5 seconds
+        self:DisconnectTask("C_Clip")
+        self:Log("Xenon:C_Clip: Removed Task.")
     end
-	self:DisconnectTask("C_Clip") -- Disconnect the task when done
-	self:Log("Xenon:C_Clip: Removed Task.") -- Log the removal of the task
 end
 
 function Xenon.Utils:FarmItems(List)
