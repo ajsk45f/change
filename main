@@ -781,6 +781,7 @@ function Xenon.Utils:FarmItems(List)
         local ItemName = Item.ItemName
         if table.find(List, ItemName) and not self:IsMax(ItemName) then
             xpcall(function()
+		task.wait(0.5) -- Add a delay of 0.5 seconds before collecting the item
                     self:Collect(Item.ItemModel)
             end, function(err)
                     warn("[Xenon Error : Collect]:", err)
@@ -2195,7 +2196,7 @@ end, "keep any shiny while stand farming")
 Autofarms_StandFarm:Toggle("Stand Farm", Util:GetState("Stand Farming"), function(State)
     Util:SetState("Stand Farming", State)
 
-    if Util:GetState("Stand Farm") == true then
+    if Util:GetState("Stand Farming") == true then
         local HRP = Util:GetHRP()
         if HRP then
             HRP.CFrame = CFrame.new(-324, -32, 47)
@@ -2212,7 +2213,7 @@ Autofarms_StandFarm:Toggle("Stand Farm", Util:GetState("Stand Farming"), functio
     end
 
     if Util:GetState("Arrow Pity Farm") == false then
-        while Util:GetState("Stand Farm") == true do task.wait()
+        while Util:GetState("Stand Farming") == true do task.wait()
             if Util:CountItem("Mysterious Arrow") == 0 or Util:CountItem("Rokakaka") == 0 then
                 Util:FarmItems{
                     "Rokakaka";
@@ -2224,7 +2225,7 @@ Autofarms_StandFarm:Toggle("Stand Farm", Util:GetState("Stand Farming"), functio
                     StandRedeemedFarm:UpdateAsset(false)
             end
 
-            if (Util:HasStand() == true and Util:FindTable("Stands", Util:CheckStand()) and Util:GetState("Stand Farm") == true) or (Util:HasStand() and Util:GetState("Keep any shiny") == true and Util:HasShiny()) then --// They got a stand they wanted?
+            if (Util:HasStand() == true and Util:FindTable("Stands", Util:CheckStand()) and Util:GetState("Stand Farming") == true) or (Util:HasStand() and Util:GetState("Keep any shiny") == true and Util:HasShiny()) then --// They got a stand they wanted?
                 if Util:GetState("Waiting") == false then --// They haven't been notified before?
                     Library:Notification("You have the stand you wanted!", Util:CheckStand(), 6)
                     Util:SetState("Waiting", true) --// They now have been notified
@@ -2236,7 +2237,7 @@ Autofarms_StandFarm:Toggle("Stand Farm", Util:GetState("Stand Farming"), functio
 
             Util:SetState("Waiting", false)
 
-            if Util:HasStand() == true and Util:FindTable("Stands", Util:CheckStand()) == nil and Util:GetState("Stand Farm") == true then
+            if Util:HasStand() == true and Util:FindTable("Stands", Util:CheckStand()) == nil and Util:GetState("Stand Farming") == true then
                 if Util:GetState("Use Redeemed") == true then
                     Util:UseRedeemedRoka()
                 else
@@ -2246,7 +2247,7 @@ Autofarms_StandFarm:Toggle("Stand Farm", Util:GetState("Stand Farming"), functio
                 repeat task.wait() until Util:GetCharacter() and Util:GetCharacter():FindFirstChild("RemoteEvent")
             end
 
-            if Util:HasStand() == false and Util:GetState("Stand Farm") == true then
+            if Util:HasStand() == false and Util:GetState("Stand Farming") == true then
                 Util:Stats()
                 if Util:GetState("Use Redeemed") == true then
                     Util:UseRedeemedArrow()
@@ -2258,7 +2259,7 @@ Autofarms_StandFarm:Toggle("Stand Farm", Util:GetState("Stand Farming"), functio
             end
         end
     else
-        while (Util:GetState("Stand Farm") == true and Util:GetState("Arrow Pity Farm")) == true do task.wait()
+        while (Util:GetState("Stand Farming") == true and Util:GetState("Arrow Pity Farm")) == true do task.wait()
             if Util:CountItem("Mysterious Arrow") == 0 or Util:CountItem("Rokakaka") == 0 then
                 Util:FarmItems{
                     "Rokakaka";
@@ -2276,7 +2277,7 @@ Autofarms_StandFarm:Toggle("Stand Farm", Util:GetState("Stand Farming"), functio
                     repeat task.wait() until Util:GetCharacter() and Util:GetCharacter():FindFirstChild("RemoteEvent")
             end
 
-            if Util:HasStand() == false and Util:GetState("Stand Farm") == true then
+            if Util:HasStand() == false and Util:GetState("Stand Farming") == true then
                     Util:Stats()
                     if Util:GetState("Use Redeemed") == true then
                         Util:UseRedeemedArrow()
@@ -2380,17 +2381,19 @@ Autofarms_ShinyFarm:Toggle("Shiny Farm", Util:GetState("Shiny Farming"), functio
 
     if Util:GetState("Shiny Farming") == true then
         Util:GetHRP().CFrame = CFrame.new(-324, -32, 47)
+        print("teleported to safe spot for shiny farm")
 
         if not Util:IsTaskRunning("SafeFarm") then
             Util:AddTask("SafeFarm", Util:GetPlayer().CharacterAdded:Connect(function(Char)
                 task.wait(0.325)
                 Char.PrimaryPart.CFrame = CFrame.new(-324, -32, 47)
+                print("teleported to safe spot for shiny farm")
             end))
         end
     else
         Util:DisconnectTask("SafeFarm")
     end
-
+    print("starting shinyfarm loop..")
     while Util:GetState("Shiny Farming") == true do task.wait(0.1)
         warn("Waiting state:", Util:GetState("Waiting"))
         warn("Has Stand:", Util:HasStand())
@@ -2418,13 +2421,18 @@ Autofarms_ShinyFarm:Toggle("Shiny Farm", Util:GetState("Shiny Farming"), functio
                     if string.find(Instance.TextLabel.Text, "None") then
                         Util:GetCharacter().RemoteEvent:FireServer("SwapStand", tostring(Instance.Name))
                         Util:GetPlayer().CharacterAdded:Wait()
+                    else
+						print("breaking loop due to having wanted shiny")
+                        break
                     end
                 end
             end
+
             continue 
         end
 
-        if Util:HasStand() == true and Util:HasShiny() == true and Util:FindTable("ShinyToggles", Util:CheckShiny()) then --// They got a stand they wanted?
+        if Util:HasStand() == true and (Util:HasShiny() == true and Util:FindTable("ShinyToggles", Util:CheckShiny()) ~= nil) then --// They got a stand they wanted?
+            print("got wanted shiny, checking for wait and sending webhook.")
             if Util:GetState("Waiting") == false then --// They haven't been notified before?
                 Library:Notification("You have the shiny you wanted!", Util:CheckShiny(), 3)
                 if not Util:GetState("Disable Xenon Logs") then
@@ -2433,29 +2441,40 @@ Autofarms_ShinyFarm:Toggle("Shiny Farm", Util:GetState("Shiny Farming"), functio
                 else
                     Util:SendWebhook(Util:GetString("Webhook"), "Username: `" .. Util:GetPlayer().Name .. "`\nShiny: `" .. Util:CheckShiny() .. "`\nPity: `" .. Util:GetString("Pity") .. "`", "Xenon V3 (Private) - Obtained a Shiny!")
                 end
+                print("attemped to send webhook")
                 Util:SetState("Waiting", true) --// They now have been notified
-
+                print("attemping to swap to empty stand slot")
                 for _, Instance in Util:GetPlayer().PlayerGui.HUD.Main.Frames.Stands.ScrollingFrame:GetChildren() do
                     if Instance:FindFirstChild("TextLabel") then
                         if string.find(Instance.TextLabel.Text, "None") then
                             Util:GetCharacter().RemoteEvent:FireServer("SwapStand", tostring(Instance.Name))
                             Util:GetPlayer().CharacterAdded:Wait()
+                        else
+							print("got wanted shiny and have no slots left, breaking loop")
+							break
                         end
                     end
                 end
-
-                continue
             else
                 continue
             end
         end
-
+        print("starting waiting roka")
         if Util:GetState("Shiny Farming") == true then
             Util:SetState("Waiting", false)
         end
 
-        if Util:HasStand() == true and Util:FindTable("ShinyToggles", Util:CheckShiny()) == nil and Util:GetState("Shiny Farming") == true then
-
+        warn("BEFORE ROKA ATTEMPT Waiting state:", Util:GetState("Waiting"))
+        warn("BEFORE ROKA ATTEMPT WaitingHas Stand:", Util:HasStand())
+        --print("Pity:", Util:GetPlayer().PlayerStats.Pity.Value == 0)
+        local nig, ger = pcall(function()
+            warn("BEFORE ROKA ATTEMPT Waiting Has Shiny:", Util:HasShiny(), Util:CheckShiny())
+            warn("BEFORE ROKA ATTEMPT Waiting ENabrled Shiny:", Util:FindTable("ShinyToggles", Util:CheckShiny()))
+        end)
+        print("before roka", nig, ger)
+        print("passed waiting roka")
+        if (Util:HasStand() == true and (Util:HasShiny() == true and Util:FindTable("ShinyToggles", Util:CheckShiny()) == nil)) or (Util:HasStand() == true and (Util:HasShiny() == false)) then
+            print("roka #1")
             task.spawn(function()
 				local gay, sex = pcall(function()
 					if Util:CheckShiny() ~= "None" and Util:CheckShiny() ~= "nil" then
@@ -2470,18 +2489,22 @@ Autofarms_ShinyFarm:Toggle("Shiny Farm", Util:GetState("Shiny Farming"), functio
                 end)
                 print(gay,sex)
             end)
-
+            print("roka #2")
             if Util:GetState("Use Redeemed") == true then
                 Util:UseRedeemedRoka()
+                print("roka '#3")
             else
                 Util:UseRoka()
+                print("roka#3")
             end
-
+            print("roka # 4")
             repeat task.wait() until Util:GetCharacter() and Util:GetCharacter():FindFirstChild("RemoteEvent")
-            --continue
+            continue
         end
 
+        print("moving on to using arrows..")
         if Util:HasStand() == false and Util:GetState("Shiny Farming") == true and Util:CountItem("Mysterious Arrow") >= 1 then
+            print("setting skill tree points..")
             Util:Stats()
             if Util:GetState("Use Redeemed") == true then
                 Util:UseRedeemedArrow()
@@ -2492,8 +2515,9 @@ Autofarms_ShinyFarm:Toggle("Shiny Farm", Util:GetState("Shiny Farming"), functio
             print("HIYA BABEY")
             repeat task.wait() until Util:HasStand() == true 
             print("NOOOROR")
-            --continue
+            continue
         end
+        print("if this print is shown, script failed to use an arrow.")
     end
 end, "Farms wanted shinys for you")
 
@@ -3361,8 +3385,11 @@ Misc_Sell:Toggle("Auto Sell", false, function(State)
 
     while Util:GetState("Auto Sell") == true do task.wait()
         for i,v in pairs(Util:GetTable("ChosenItemsToSell")) do
+			if not Util:GetPlayer().Backpack:FindFirstChild(v) then continue end
+            
             Util:GetHumanoid():EquipTool(Util:GetPlayer().Backpack:FindFirstChild(v))
             Util:GetCharacter().RemoteEvent:FireServer("EndDialogue", {NPC = "Merchant", Option = "Option1", Dialogue = "Dialogue5"})
+            task.wait()
         end
     end
 end, "auto sells all selected items")
