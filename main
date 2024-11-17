@@ -756,37 +756,25 @@ function Xenon.Utils:Collect(Item)
     self:Log("Xenon:C_Clip: Added task.")
 
     if Character then
-    local HRP = Character:FindFirstChild("HumanoidRootPart")
-    if HRP and Item and Item.PrimaryPart and Item.PrimaryPart.CFrame then
-        OldCF = HRP.CFrame
-        HRP.CFrame = Item.PrimaryPart.CFrame - v3(0, 10, 0)
-        
-        -- Add loop to constantly follow the item
-        task.spawn(function()
-            while Item.Parent == workspace.Item_Spawns.Items do
-                HRP.CFrame = Item.PrimaryPart.CFrame - v3(0, 10, 0)
-                task.wait() -- Keep updating position each frame
-            end
-        end)
-        
-        task.wait(0.3)
-        
-        repeat
-            fireproximityprompt(Item:FindFirstChild("ProximityPrompt"))
-            if Item and Item.Parent == workspace.Item_Spawns.Items and Character and HRP then
-                HRP.CFrame = Item.PrimaryPart.CFrame - v3(0, 10, 0)
-            end
-            task.wait()
-        until Item.Parent ~= workspace.Item_Spawns.Items or tick()-Start >= 3.5
-        
-        task.wait(0.6)
-        HRP.CFrame = OldCF
+        local HRP = Character:FindFirstChild("HumanoidRootPart")
+        if HRP and Item and Item.PrimaryPart and Item.PrimaryPart.CFrame then
+            OldCF = HRP.CFrame
+            HRP.CFrame = Item.PrimaryPart.CFrame - v3(0, 10, 0)
+            task.wait(0.3)
+            repeat 
+                    fireproximityprompt(Item:FindFirstChild("ProximityPrompt"))
+                    if Item and Item.Parent == workspace.Item_Spawns.Items and Character and HRP then
+                        HRP.CFrame = Item.PrimaryPart.CFrame - v3(0, 10, 0)
+                    end
+                    task.wait()
+            until Item.Parent ~= workspace.Item_Spawns.Items or tick()-Start >= 3.5
+            task.wait(0.6)
+            HRP.CFrame = OldCF
+        end
     end
+    self:DisconnectTask("C_Clip")
+    self:Log("Xenon:C_Clip: Removed Task.")
 end
-
-self:DisconnectTask("C_Clip")
-self:Log("Xenon:C_Clip: Removed Task.")
-
 
 function Xenon.Utils:FarmItems(List)
     for Prompt, Item in pairs(self:GetTable("Queue")) do
