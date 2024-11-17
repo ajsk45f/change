@@ -760,7 +760,7 @@ function Xenon.Utils:Collect(Item)
         if HRP and Item and Item.PrimaryPart and Item.PrimaryPart.CFrame then
             OldCF = HRP.CFrame
             HRP.CFrame = Item.PrimaryPart.CFrame - v3(0, 10, 0)
-            task.wait(1.4)
+            task.wait(1.1)
             repeat 
                     fireproximityprompt(Item:FindFirstChild("ProximityPrompt"))
                     if Item and Item.Parent == workspace.Item_Spawns.Items and Character and HRP then
@@ -2385,7 +2385,7 @@ Autofarms_ShinyFarm:Toggle("Shiny Farm", Util:GetState("Shiny Farming"), functio
 
         if not Util:IsTaskRunning("SafeFarm") then
             Util:AddTask("SafeFarm", Util:GetPlayer().CharacterAdded:Connect(function(Char)
-                task.wait(0.9)
+                task.wait(0.7)
                 Char.PrimaryPart.CFrame = CFrame.new(-324, -32, 47)
                 print("teleported to safe spot for shiny farm")
             end))
