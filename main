@@ -768,7 +768,7 @@ function Xenon.Utils:Collect(Item)
                     end
                     task.wait()
             until Item.Parent ~= workspace.Item_Spawns.Items or tick()-Start >= 3.5
-            task.wait(0.6)
+            task.wait(0.8)
             HRP.CFrame = OldCF
         end
     end
