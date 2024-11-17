@@ -2385,7 +2385,7 @@ Autofarms_ShinyFarm:Toggle("Shiny Farm", Util:GetState("Shiny Farming"), functio
 
         if not Util:IsTaskRunning("SafeFarm") then
             Util:AddTask("SafeFarm", Util:GetPlayer().CharacterAdded:Connect(function(Char)
-                task.wait(0.325)
+                task.wait(0.9)
                 Char.PrimaryPart.CFrame = CFrame.new(-324, -32, 47)
                 print("teleported to safe spot for shiny farm")
             end))
