@@ -768,7 +768,7 @@ function Xenon.Utils:Collect(Item)
                     end
                     task.wait()
             until Item.Parent ~= workspace.Item_Spawns.Items or tick()-Start >= 3.5
-            task.wait(0.6)
+            task.wait(5)
             HRP.CFrame = OldCF
         end
     end
@@ -781,7 +781,7 @@ function Xenon.Utils:FarmItems(List)
         local ItemName = Item.ItemName
         if table.find(List, ItemName) and not self:IsMax(ItemName) then
             xpcall(function()
-	task.wait(5) -- Add a delay of 0.5 seconds before collecting the item
+	
                     self:Collect(Item.ItemModel)
             end, function(err)
                     warn("[Xenon Error : Collect]:", err)
